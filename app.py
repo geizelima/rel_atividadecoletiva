@@ -276,7 +276,6 @@ with st.sidebar:
         "🩺 Temas de Saúde",
         "📋 Atividades",
         "🌿 Práticas em Saúde",
-        "🏫 Saúde na Escola",
         "📅 Comparativo Mensal",
     ], label_visibility="collapsed")
 
@@ -350,24 +349,18 @@ def donut(df_in: pd.DataFrame, col_val="Total", col_name="Item", title="", h=340
     fig = go.Figure(go.Pie(
         labels=df[col_name], values=df[col_val],
         hole=0.52, marker_colors=PAL[:len(df)],
-        textfont=dict(size=12, color="#ffffff"), # Fonte branca para contraste
+        textfont=dict(size=11, color="white"),
         hovertemplate="%{label}: <b>%{value}</b> (%{percent})<extra></extra>",
-        textinfo="label+percent", # Exibe o nome do item e a percentagem na fatia
-        textposition="auto",      # Ajusta o texto automaticamente se a fatia for pequena
+        textinfo="percent",
     ))
-    
     fig.update_layout(
         title=title, height=h,
         paper_bgcolor=C["bg"], plot_bgcolor=C["bg"],
         font=dict(color=C["text"], family="Inter, sans-serif", size=12),
-        margin=dict(l=10, r=10, t=42, b=10), # Margens reduzidas para ampliar o gráfico
-        showlegend=False, # Oculta a legenda lateral para ganhar espaço
+        margin=dict(l=8, r=8, t=42, b=8),
+        legend=dict(bgcolor="rgba(255,255,255,.9)", bordercolor=C["grid"], borderwidth=1, font=dict(size=11)),
         title_font=dict(size=14, color="#111", family="Inter, sans-serif"),
-        annotations=[dict(
-            text=f"<b>{df[col_val].sum():,}</b>", 
-            x=.5, y=.5, showarrow=False, 
-            font=dict(size=20, color="#111")
-        )],
+        annotations=[dict(text=f"<b>{df[col_val].sum():,}</b>", x=.5, y=.5, showarrow=False, font=dict(size=18, color="#111"))],
     )
     return fig
 
@@ -583,41 +576,6 @@ elif secao == "🌿 Práticas em Saúde":
 
     with st.expander("📋 Ver todas as práticas"):
         st.dataframe(df_pr_raw, use_container_width=True, hide_index=True)
-
-elif secao == "🏫 Saúde na Escola":
-    sec_title("Programa Saúde na Escola (PSE)")
-    
-    # Extrai os dados específicos da seção do PSE
-    df_pse_raw = totals([rec], "Programa saúde na escola")
-    total_pse = df_pse_raw["Total"].sum() if not df_pse_raw.empty else 0
-    
-    # Remove itens vazios ou não informados para o gráfico
-    df_pse = df_pse_raw.copy()
-    if not df_pse.empty:
-        df_pse = df_pse[df_pse["Item"] != "Não informado"]
-
-    if total_pse == 0:
-        st.info("Nenhuma atividade do Programa Saúde na Escola registada neste mês.")
-    else:
-        top_pse = df_pse.iloc[0]["Item"] if not df_pse.empty else "—"
-
-        # Exibe os KPIs superiores
-        col1, col2, col3 = st.columns(3)
-        col1.markdown(kpi("🏫", "Total de Ações PSE", f"{total_pse:,}"), unsafe_allow_html=True)
-        col2.markdown(kpi("🏆", "Tema mais frequente", top_pse), unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # Exibe os gráficos
-        c1, c2 = st.columns([3, 2])
-        with c1:
-            st.plotly_chart(bar_h(df_pse, title="📚 Temas Abordados nas Escolas", h=480), use_container_width=True)
-        with c2:
-            st.plotly_chart(donut(df_pse, title="📊 Proporção dos Temas", h=480), use_container_width=True)
-
-        # Tabela expansível
-        with st.expander("📋 Ver detalhamento completo de temas do PSE"):
-            st.dataframe(df_pse_raw.sort_values("Total", ascending=False), use_container_width=True, hide_index=True)
 
 elif secao == "📅 Comparativo Mensal":
     if len(records) < 2:
